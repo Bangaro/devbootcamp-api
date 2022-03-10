@@ -39,6 +39,14 @@ const CourseSchema = new mongoose.Schema({
         ref: "Bootcamp",
         required: true,
     },
+    user: {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+        required: true,
+    },
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
 });
 
 //Static method to get average cost
@@ -56,7 +64,7 @@ CourseSchema.statics.getAverageCost = async function(bootcampId) {
 
     try {
         await this.model("Bootcamp").findByIdAndUpdate(bootcampId, {
-            averageCost: Match.ceil(obj[0].averageCost / 10) * 10,
+            averageCost: Math.ceil(obj[0].averageCost / 10) * 10,
         });
     } catch (error) {
         console.log(error);
