@@ -6,6 +6,12 @@ const dotenv = require("dotenv");
 const morgan = require("morgan");
 const colors = require("colors");
 const errorHandler = require("./middlewares/error");
+const mongoSanitize = require("express-mongo-sanitize");
+const helmet = require("helmet");
+const xss = require("xss-clean");
+const rateLimit = require("express-rate-limit");
+const hpp = require("hpp");
+const cors = require("cors");
 
 //Route files
 const bootcamps = require("./routes/bootcamps");
@@ -18,6 +24,9 @@ const connectDB = require("./config/db");
 const { dirname } = require("path");
 
 dotenv.config({ path: "./config/config.env" });
+
+//Enable CORS
+app.use(cors());
 
 //Connect to MongoDB
 connectDB();
@@ -33,6 +42,23 @@ app.use(express.json());
 //Cookie parser
 app.use(cookieParser());
 
+//Set security headers
+app.use(helmet());
+
+//Prevent XSS attacks
+app.use(xss());
+
+//Rate limiting
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, //10 minutes
+    max: 100, //limit each IP to 100 requests per windowMs
+});
+
+app.use(limiter);
+
+//Prevent http param pollution
+app.use(hpp());
+
 //Logger
 if (process.env.NODE_ENV === "development") {
     app.use(morgan("dev"));
@@ -40,6 +66,9 @@ if (process.env.NODE_ENV === "development") {
 
 //File upload
 app.use(fileupload());
+
+//Sanitize data
+app.use(mongoSanitize());
 
 //Mount routers
 app.use("/api/v1/bootcamps", bootcamps);

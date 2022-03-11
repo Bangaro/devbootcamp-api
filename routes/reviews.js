@@ -2,9 +2,15 @@ const express = require("express");
 
 const router = express.Router({ mergeParams: true });
 
-const { protect } = require("../middlewares/auth");
+const { protect, authorize } = require("../middlewares/auth");
 
-const { getReviews, getReview } = require("../controllers/reviews-controller");
+const {
+    getReviews,
+    getReview,
+    addReview,
+    updateReview,
+    deleteReview,
+} = require("../controllers/reviews-controller");
 
 const Review = require("../models/Review");
 
@@ -18,5 +24,11 @@ router.get(
 );
 
 router.get("/:id", getReview);
+
+router.post("/", protect, authorize("user", "admin"), addReview);
+
+router.put("/:id", protect, authorize("user", "admin"), updateReview);
+
+router.delete("/:id", protect, authorize("user", "admin"), deleteReview);
 
 module.exports = router;
